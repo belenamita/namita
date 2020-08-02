@@ -1,56 +1,72 @@
-#Prediction model for profit of 50 startups
-startup <- read.csv("//Users//smitshah//Desktop//Assignments//Multi linear  Regression//50_Startups (1).csv")
-View(startup)
-attach(startup)
-summary(startup)
+#50 startups
 
-install.packages("dummies")
-library(dummies)
-startup.new <- dummy.data.frame(startup,sep=".")
-names(startup.new)
-dummy(startup$State,sep=".")
-attach(startup.new)
+library(plyr)
+stp <- read.csv(file.choose())
+View(stp)
+str(stp)
+attach(stp)
+summary(stp)
+stp$State <- as.numeric(revalue(stp$State,
+                                     c("New York"="0", "California"="1",
+                                       "Florida"="2")))
+str(stp)
+#Data visualization
+plot(R.D.Spend,Profit)
+plot(Administration,Profit)
+plot(State, Profit)
+pairs(stp)
+cor(stp)
+#Normalize the data
+normalize<-function(x){
+  return ( (x-min(x))/(max(x)-min(x)))
+}
+stp_norm <- as.data.frame(lapply(stp,FUN= normalize))
+summary(stp_norm$Profit)
+stp_norm <- stp_norm[,-6]
 
-#Find relation between variables
-pairs(startup)
-plot(startup)
+View(stp_norm)
+#Data partition
+train <- stp_norm[1:26,]
+test <- stp_norm[27:50,]
+#Using multilayered feed forward network
+#pakage neuralnet
+install.packages("neuralnet")#Regression
+install.packages("nnet")#Classification
+library(neuralnet)
+library(nnet)
+str(stp_norm)
 
-#Corelation coefficient matrix
+#Building model
+startups_model <- neuralnet(Profit~R.D.Spend+Administration
+                            +Marketing.Spend+State,data = train)
+str(startups_model)
+plot(startups_model, rep = "best")
+summary(startups_model)
+#SSE sum of squared errors
+#Evaluating model performance
+#compute function to generate output for model prepared
+set.seed(12323)
+model_results <- compute(startups_model,test[1:4])
+preduct_profit <- model_results$net.result
 
-cor(startup.new)
+#Predicted model Vs Actual Model
+cor(preduct_profit,test$Profit)
+plot(preduct_profit,test$Profit)
 
-#Partial coefficient matrix
-install.packages("corpcor")
-library(corpcor)
-cor2pcor(cor(startup.new))
+#Denormalize predicted value
+str_max <- max(stp$Profit)
+str_min <- min(stp$Profit)
+unnormalize <- function(x,min,max){
+  return((max-min)*x+min)
+}
+act_profit_pred <- unnormalize(preduct_profit,str_min,str_max)
+head(act_profit_pred)
 
-#Model Building
-model <- lm(Profit~R.D.Spend+Administration+Marketing.Spend,data = startup.new)
-summary(model)
-model.1 <- lm(Profit~Administration+Marketing.Spend)
-summary(model.1)
-
-library(psych)
-pairs.panels(startup.new)
-
-#Plotting influential measure
-influence.measures(model)
-library(car)
-influenceIndexPlot(model,id.n=3)
-influencePlot(model,id.n=3)
-
-#Regression after deleting 50 th observation
-model1 <- lm(Profit~R.D.Spend+Administration+Marketing.Spend,data = startup.new[-c(46,47,49,50),])
-summary(model1)
-vif(model1)
-#Vif is not greater than 10 so there in non collinearity among the variables
-
-#Regression after considering R.D.Spend and Marketing.Spend
-Finalmodel <- lm(Profit~R.D.Spend+Marketing.Spend)
-summary(Finalmodel)
-
-#Evaluate model line assumption
-plot(Finalmodel)
-#Residual plots,QQplot,std-Residuals Vs Fitted,Cook's Distance 
-qqPlot(Finalmodel,id.n = 5)
-# QQ plot of studentized residuals helps in identifying outlier 
+#Improve model performance
+Model1 <- neuralnet(Profit~R.D.Spend+Administration+State+Marketing.Spend,data = train,hidden = 2)
+plot(Model1,rep = "best")
+set.seed(12323)
+model_results1 <- compute(Model1,test[1:4])
+pred1 <- model_results1$net.result
+cor(pred1,test$Profit)
+plot(pred1,test$Profit)
