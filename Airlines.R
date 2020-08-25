@@ -1,8 +1,10 @@
 #East west airlines
-install.packages(plyr)
+install.packages("plyr")
 library(plyr)
 
-mydata <- read_xlsx("//Users//smitshah//Downloads//EastWestAirlines (2).xlsx")
+
+mydata <- read.csv("//Users//smitshah//Downloads//EastWestAirlines (1) (1).csv")
+
 str(mydata)
 normalized_data<-scale(mydata[,2:12])
 
@@ -15,3 +17,20 @@ final2<- data.frame(mydata, fit$cluster) # append cluster membership
 # final2
 aggregate(mydata[,2:12], by=list(fit$cluster), FUN=mean)
 table(fit$cluster)
+
+#hierachical clustering
+d <- dist(normalized_data,method = "euclidean")
+d
+fit1 <- hclust(d,method = "complete")
+fit1
+plot(fit1,hang=-1)
+groups <- cutree(fit1,k=44,h=NULL)
+table(groups)
+
+View(groups)
+airline <- as.matrix(groups)
+final <- data.frame(mydata,airline)
+View(final)
+
+
+
