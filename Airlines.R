@@ -32,5 +32,42 @@ airline <- as.matrix(groups)
 final <- data.frame(mydata,airline)
 View(final)
 
+d1 <- dist(normalized_data,method = "maximum")
+d1
+fit2 <- hclust(d1,method = "average")
+fit2
+plot(fit2,hang=-1)
+groups1 <- cutree(fit2,k=44,h=NULL)
+table(groups1)
+View(groups1)
+airline11 <- as.matrix(groups)
+final1 <- data.frame(mydata,airline)
+View(final1)
 
+d2 <- dist(normalized_data,method = "manhattan")
+d2
+fit3 <- hclust(d2,method = "single")
+fit3
+plot(fit3,hang=-1)
+groups2 <- cutree(fit3,k=44,h=NULL)
+table(groups2)
+View(groups2)
+airline11 <- as.matrix(groups2)
+final2 <- data.frame(mydata,airline)
+View(final2)
 
+d3 <- dist(normalized_data,method = "euclidean")
+d3
+fit4 <- hclust(d3,method = "single")
+fit4
+plot(fit4,hang=-1)
+group3 <- cutree(fit4,k=44,h=NULL)
+table(group3)
+
+d4 <- dist(normalized_data,method = "maximum")
+d4
+fit5 <- hclust(d4,method="complete")
+fit5
+plot(fit5,hang=-1)
+group4 <- cutree(fit5,k=44,h=NULL)
+table(group4)
